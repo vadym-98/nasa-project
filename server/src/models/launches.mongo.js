@@ -33,3 +33,5 @@ const launchesSchema = new mongoose.Schema({
     },
 })
 
+// connects launchesSchema with the 'launches' collection
+module.exports = mongoose.model('Launch', launchesSchema)
