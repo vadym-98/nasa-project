@@ -17,8 +17,6 @@ const launch = {
     success: true,
 }
 
-saveLaunch(launch)
-
 async function existsLaunchWithId(launchId) {
     return launchesDatabase.findOne({flightNumber: launchId})
 }
