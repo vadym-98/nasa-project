@@ -10,20 +10,6 @@ function isHabitablePlanet(planet) {
         && planet['koi_prad'] < 1.6;
 }
 
-async function savePlanet(planet) {
-    try {
-        await planets.updateOne({
-            keplerName: planet.kepler_name,
-        }, {
-            keplerName: planet.kepler_name,
-        }, {
-            upsert: true,
-        })
-    } catch (e) {
-        console.error(`couldn't save planet ${e}`)
-    }
-}
-
 function loadPlanetsData() {
     return new Promise((resolve, reject) => {
         fs.createReadStream(path.join(__dirname, '..', '..', 'data', 'kepler_data.csv'))
@@ -48,8 +34,22 @@ function loadPlanetsData() {
     })
 }
 
+async function savePlanet(planet) {
+    try {
+        await planets.updateOne({
+            keplerName: planet.kepler_name,
+        }, {
+            keplerName: planet.kepler_name,
+        }, {
+            upsert: true,
+        })
+    } catch (e) {
+        console.error(`couldn't save planet ${e}`)
+    }
+}
+
 async function getAllPlanets() {
-    return await planets.find({})
+    return planets.find({}, {_id: 0, __v: 0})
 }
 
 module.exports = {
