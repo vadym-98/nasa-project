@@ -70,4 +70,4 @@ jobs:
                 ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker rm nasa || true'
             - name: Run new container
               run: |
-                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
+                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 -e MONGO_URL=${{ secrets.MONGO_URL }} ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
