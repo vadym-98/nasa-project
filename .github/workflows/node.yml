@@ -4,6 +4,10 @@ on:
         branches: [master]
     pull_request:
         branches: [master]
+env:
+    DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    AWS_PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY }}
 jobs:
     build:
         env:
@@ -27,3 +31,43 @@ jobs:
             - run: npm install
             - run: npm run build --prefix client
             - run: npm test
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v2
+            - name: Login to DockerHub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ env.DOCKER_USERNAME }}
+                password: ${{ env.DOCKER_ACCESS_TOKEN }}
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v4
+              with:
+                context: ./
+                file: ./Dockerfile
+                push: true
+                tags: ${{ env.DOCKER_USERNAME }}/nasa-project:1.1.0
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ env.DOCKER_USERNAME }}
+                password: ${{ env.DOCKER_ACCESS_TOKEN }}
+            - name: Set permissions for private key
+              run: |
+                echo "${{ env.AWS_PRIVATE_KEY }}" > key.pem
+                chmod 600 key.pem
+            - name: Pull Docker image
+              run: |
+                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker pull ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
+            - name: Stop running container
+              run: |
+                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker stop nasa || true'
+                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker rm nasa || true'
+            - name: Run new container
+              run: |
+                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
