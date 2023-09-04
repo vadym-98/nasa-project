@@ -1,7 +1,7 @@
 name: Nasa Project CI
 on:
     push:
-        branches: [master]
+        branches: [master, develop]
     pull_request:
         branches: [master]
 env:
@@ -13,6 +13,9 @@ jobs:
         env:
             CI: true # to disable watch mode for create react app tests
             MONGO_URL: mongodb://localhost/nasa
+        environment: 
+          name: Stage
+          url: ${{ vars.HOST }}
         strategy:
             matrix:
                 node-version: [18.x, 20.x]
@@ -20,54 +23,58 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
-            - name: Use Node.js version ${{ matrix.node-version }}
-              uses: actions/setup-node@v3
-              with:
-                node-version: ${{ matrix.node-version }}
-            - name: Use MongoDB from GitHub Actions
-              uses: supercharge/mongodb-github-action@v1.10.0
-              with:
-                mongodb-version: ${{ matrix.mongodb-version }}
-            - run: npm install
-            - run: npm run build --prefix client
-            - run: npm test
+            - run: echo '${{github}}'
+            # - name: Use Node.js version ${{ matrix.node-version }}
+            #   uses: actions/setup-node@v3
+            #   with:
+            #     node-version: ${{ matrix.node-version }}
+            # - name: Use MongoDB from GitHub Actions
+            #   uses: supercharge/mongodb-github-action@v1.10.0
+            #   with:
+            #     mongodb-version: ${{ matrix.mongodb-version }}
+            # - run: npm install
+            # - run: npm run build --prefix client
+            # - run: npm test
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v2
-            - name: Login to DockerHub
-              uses: docker/login-action@v2
-              with:
-                username: ${{ env.DOCKER_USERNAME }}
-                password: ${{ env.DOCKER_ACCESS_TOKEN }}
-            - name: Build and push Docker image
-              uses: docker/build-push-action@v4
-              with:
-                context: ./
-                file: ./Dockerfile
-                push: true
-                tags: ${{ env.DOCKER_USERNAME }}/nasa-project:1.1.0
-    deploy:
-        needs: build
-        runs-on: ubuntu-latest
-        steps:
-            - name: Login to Docker Hub
-              uses: docker/login-action@v2
-              with:
-                username: ${{ env.DOCKER_USERNAME }}
-                password: ${{ env.DOCKER_ACCESS_TOKEN }}
-            - name: Set permissions for private key
-              run: |
-                echo "${{ env.AWS_PRIVATE_KEY }}" > key.pem
-                chmod 600 key.pem
-            - name: Pull Docker image
-              run: |
-                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker pull ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
-            - name: Stop running container
-              run: |
-                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker stop nasa || true'
-                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker rm nasa || true'
-            - name: Run new container
-              run: |
-                ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 -e MONGO_URL="${{ secrets.MONGO_URL }}" ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
+            # - name: Set up QEMU
+            #   uses: docker/setup-qemu-action@v2
+            # - name: Set up Docker Buildx
+            #   uses: docker/setup-buildx-action@v2
+            # - name: Login to DockerHub
+            #   uses: docker/login-action@v2
+            #   with:
+            #     username: ${{ env.DOCKER_USERNAME }}
+            #     password: ${{ env.DOCKER_ACCESS_TOKEN }}
+            # - name: Build and push Docker image
+            #   uses: docker/build-push-action@v4
+            #   with:
+            #     context: ./
+            #     file: ./Dockerfile
+            #     push: true
+            #     tags: ${{ env.DOCKER_USERNAME }}/nasa-project:1.1.0
+    # deploy:
+    #     needs: build
+    #     runs-on: ubuntu-latest
+    #     environment: 
+    #       name: Prod
+    #       url: ${{ vars.HOST }}
+    #     steps:
+    #         - name: Login to Docker Hub
+    #           uses: docker/login-action@v2
+    #           with:
+    #             username: ${{ env.DOCKER_USERNAME }}
+    #             password: ${{ env.DOCKER_ACCESS_TOKEN }}
+    #         - name: Set permissions for private key
+    #           run: |
+    #             echo "${{ env.AWS_PRIVATE_KEY }}" > key.pem
+    #             chmod 600 key.pem
+    #         - name: Pull Docker image
+    #           run: |
+    #             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker pull ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
+    #         - name: Stop running container
+    #           run: |
+    #             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker stop nasa || true'
+    #             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker rm nasa || true'
+    #         - name: Run new container
+    #           run: |
+    #             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 -e MONGO_URL="${{ secrets.MONGO_URL }}" ${{env.DOCKER_USERNAME}}/nasa-project:1.1.0'
