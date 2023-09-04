@@ -72,6 +72,7 @@ jobs:
                 file: ./Dockerfile
                 push: true
                 tags: ${{ env.DOCKER_USERNAME }}/nasa-project:${{steps.version_step.outputs.version}}
+                
     # deploy:
     #     needs: build
     #     runs-on: ubuntu-latest
