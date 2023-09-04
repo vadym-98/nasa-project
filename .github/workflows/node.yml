@@ -15,9 +15,9 @@ jobs:
         env:
             CI: true # to disable watch mode for create react app tests
             MONGO_URL: mongodb://localhost/nasa
-        environment: 
-          name: Stage
-          url: ${{ vars.HOST }}
+        # environment: 
+        #   name: Stage
+        #   url: ${{ vars.HOST }}
         strategy:
             matrix:
                 node-version: [18.x, 20.x]
