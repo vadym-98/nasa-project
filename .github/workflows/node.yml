@@ -15,9 +15,6 @@ jobs:
         env:
             CI: true # to disable watch mode for create react app tests
             MONGO_URL: mongodb://localhost/nasa
-        # environment: 
-        #   name: Stage
-        #   url: ${{ vars.HOST }}
         strategy:
             matrix:
                 node-version: [18.x, 20.x]
@@ -25,7 +22,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
-            - run: echo "${{toJson(github)}}"
+            - run: echo "${{toJson(github.event.pull_request)}}"
 
             # - name: Use Node.js version ${{ matrix.node-version }}
             #   uses: actions/setup-node@v3
