@@ -21,9 +21,14 @@ jobs:
                 mongodb-version: ['4.4']
         runs-on: ubuntu-latest
         steps:
-          - uses: actions/checkout@v3
-          - run: echo "PR from ${{github.event.pull_request.base.ref}} to ${{github.event.pull_request.head.ref}}"
-
+            - run: |
+                echo "Process PR from ${{github.event.pull_request.head.ref}} to ${{github.event.pull_request.base.ref}}"
+            - name: Extract Version
+              id: version_step
+              run: |
+                echo "version=${${{github.event.pull_request.head.ref}}#release/}" >> $GITHUB_OUTPUT
+            - run: echo "tag ${{steps.version_step.outputs.version}}"
+            # - uses: actions/checkout@v3
             # - name: Use Node.js version ${{ matrix.node-version }}
             #   uses: actions/setup-node@v3
             #   with:
