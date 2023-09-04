@@ -24,10 +24,12 @@ jobs:
             - run: |
                 echo "Process PR from ${{github.event.pull_request.head.ref}} to ${{github.event.pull_request.base.ref}}"
             - name: Extract Version
+              env:
+                BRANCH: ${{github.event.pull_request.head.ref}}
               id: version_step
-              run: |
-                echo "version=${${{github.event.pull_request.head.ref}}#$"release/"}"
-            # - run: echo "tag ${{steps.version_step.outputs.version}}"
+              run: echo "::set-output name=version::${BRANCH##*/}"
+
+            - run: echo "tag ${{steps.version_step.outputs.version}}"
             # - uses: actions/checkout@v3
             # - name: Use Node.js version ${{ matrix.node-version }}
             #   uses: actions/setup-node@v3
