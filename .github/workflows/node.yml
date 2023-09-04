@@ -1,7 +1,7 @@
 name: Nasa Project CI
 on:
-    push:
-        branches: [master, develop]
+    # push:
+    #     branches: [master, develop]
     pull_request:
         types: [closed]
         branches: [master, develop]
@@ -26,7 +26,7 @@ jobs:
         steps:
             - uses: actions/checkout@v3
             - run: echo "${{toJson(github)}}"
-            
+
             # - name: Use Node.js version ${{ matrix.node-version }}
             #   uses: actions/setup-node@v3
             #   with:
