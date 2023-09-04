@@ -3,6 +3,7 @@ on:
     push:
         branches: [master, develop]
     pull_request:
+        types: [closed]
         branches: [master, develop]
 env:
     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -10,6 +11,7 @@ env:
     AWS_PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY }}
 jobs:
     build:
+        if: github.event.pull_request.merged == true
         env:
             CI: true # to disable watch mode for create react app tests
             MONGO_URL: mongodb://localhost/nasa
