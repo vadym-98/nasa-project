@@ -27,7 +27,9 @@ jobs:
               env:
                 BRANCH: ${{github.event.pull_request.head.ref}}
               id: version_step
-              run: echo "::set-output name=version::${BRANCH##*/}"
+              # run: echo "::set-output name=version::${BRANCH##*/}"
+              run: |
+                echo "version=${BRANCH##*/}" >> $GITHUB_OUTPUT
 
             - run: echo "tag ${{steps.version_step.outputs.version}}"
             # - uses: actions/checkout@v3
