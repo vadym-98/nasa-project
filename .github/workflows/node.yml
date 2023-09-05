@@ -76,6 +76,7 @@ jobs:
                 
     deployToStage:
         needs: build
+        if: startsWith(github.event.pull_request.head.ref, 'release/') != true
         runs-on: ubuntu-latest
         environment: 
           name: Stage
