@@ -133,3 +133,4 @@ jobs:
         - name: Run new container
           run: |
             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 -e MONGO_URL="${{ secrets.MONGO_URL }}" ${{env.DOCKER_USERNAME}}/nasa-project:${{ env.RELEASE_TAG }}'
+            
