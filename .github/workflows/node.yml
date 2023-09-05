@@ -23,6 +23,8 @@ jobs:
                 node-version: [18.x, 20.x]
                 mongodb-version: ['4.4']
         runs-on: ubuntu-latest
+        outputs:
+          release_version: ${{ steps.version_step.outputs.version }}
         steps:
             - run: |
                 echo "Process PR from ${{ env.FROM_BRANCH }} to ${{ env.TO_BRANCH }}"
@@ -106,6 +108,8 @@ jobs:
       needs: build
       if: startsWith(github.event.pull_request.head.ref, 'release/')
       runs-on: ubuntu-latest
+      env:
+        RELEASE_TAG: ${{ needs.build.outputs.release_version }}
       environment: 
         name: Prod
         url: ${{ vars.HOST }}
@@ -121,11 +125,11 @@ jobs:
             chmod 600 key.pem
         - name: Pull Docker image
           run: |
-            ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker pull ${{env.DOCKER_USERNAME}}/nasa-project:${{ github.jobs.build.steps.version_step.outputs.version }}'
+            ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker pull ${{env.DOCKER_USERNAME}}/nasa-project:${{ env.RELEASE_TAG }}'
         - name: Stop running container
           run: |
             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker stop nasa || true'
             ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker rm nasa || true'
         - name: Run new container
           run: |
-            ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 -e MONGO_URL="${{ secrets.MONGO_URL }}" ${{env.DOCKER_USERNAME}}/nasa-project:${{ github.jobs.build.steps.version_step.outputs.version }}'
+            ssh -o StrictHostKeyChecking=no -i key.pem ${{ vars.EC2_USER }}@${{ vars.HOST }} 'sudo docker run -d --name nasa -p 8000:8000 -e MONGO_URL="${{ secrets.MONGO_URL }}" ${{env.DOCKER_USERNAME}}/nasa-project:${{ env.RELEASE_TAG }}'
